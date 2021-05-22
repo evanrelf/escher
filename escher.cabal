@@ -34,3 +34,4 @@ library
   exposed-modules:
       Escher
     , Escher.DataTypes
+    , Escher.Packets
