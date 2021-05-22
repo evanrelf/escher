@@ -15,34 +15,22 @@ import Prelude hiding (length)
 
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LByteString
+import qualified Escher.DataTypes as Escher
 import qualified Network.Socket as Network
 import qualified Network.Socket.ByteString as Network
 import qualified System.IO as IO
 
-type LByteString = LByteString.ByteString
-
-type MCUnsignedShort = Word16
-
-data MCString (length :: Nat) = MCString
-  { size :: MCVarInt
-  , string :: Text
-  }
-
-type MCVarInt = Int32
-
-type MCByteArray = LByteString
-
 data Packet = Packet
-  { length :: MCVarInt
-  , packetId :: MCVarInt
-  , data_ :: MCByteArray
+  { length :: Escher.VarInt
+  , packetId :: Escher.VarInt
+  , data_ :: Escher.ByteArray
   }
 
 data Handshake = Handshake
-  { protocolVersion :: MCVarInt
-  , serverAddress :: MCString 255
-  , serverPort :: MCUnsignedShort
-  , nextState :: MCVarInt
+  { protocolVersion :: Escher.VarInt
+  , serverAddress :: Escher.String 255
+  , serverPort :: Escher.UnsignedShort
+  , nextState :: Escher.VarInt
   }
 
 toPacket :: ByteString -> Either String Packet

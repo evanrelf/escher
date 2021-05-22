@@ -33,3 +33,4 @@ library
   hs-source-dirs: src
   exposed-modules:
       Escher
+    , Escher.DataTypes
