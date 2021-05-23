@@ -7,10 +7,13 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module Escher.Packets
   ( PacketWith (..)
   , Packet
+  , mkPacket
+  , pattern Packet
   , HandshakeData (..)
   , Handshake
   , StatusRequest
@@ -28,12 +31,13 @@ import Prelude hiding (id, length)
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Text as Aeson
+import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LByteString
 import qualified Data.Serialize as Cereal
 import qualified Data.Text.Lazy as LText
 import qualified Escher.Types as Escher
 
-data PacketWith data_ = Packet
+data PacketWith data_ = UnsafePacket
   { length :: Escher.VarInt
   , id :: Escher.VarInt
   , data_ :: data_
@@ -42,9 +46,23 @@ data PacketWith data_ = Packet
 
 type Packet = PacketWith Escher.ByteArray
 
+mkPacket :: Cereal.Serialize data_ => Escher.VarInt -> data_ -> PacketWith data_
+mkPacket id data_ = UnsafePacket
+  { length
+      = Escher.VarInt
+      . fromIntegral
+      . ByteString.length
+      $ Cereal.encode id <> Cereal.encode data_
+  , id
+  , data_
+  }
+
+pattern Packet :: Escher.VarInt -> data_ -> PacketWith data_
+pattern Packet id data_ <- UnsafePacket{id, data_}
+
 instance {-# OVERLAPPING #-} Cereal.Serialize Packet where
   put :: Cereal.Putter Packet
-  put Packet{length, id, data_ = Escher.ByteArray bytes} = do
+  put UnsafePacket{length, id, data_ = Escher.ByteArray bytes} = do
     Cereal.put length
     Cereal.put id
     Cereal.putLazyByteString bytes
@@ -60,7 +78,7 @@ instance {-# OVERLAPPING #-} Cereal.Serialize Packet where
     data_ <- do
       bytes <- LByteString.fromStrict <$> Cereal.getBytes dataLength
       pure (Escher.ByteArray bytes)
-    pure Packet{length, id, data_}
+    pure UnsafePacket{length, id, data_}
 
 data HandshakeData = HandshakeData
   { protocolVersion :: Escher.VarInt
@@ -80,31 +98,28 @@ data StatusResponseData = StatusResponseData
     deriving anyclass Cereal.Serialize
 
 statusResponse :: StatusResponse
-statusResponse = Packet
-  { length = Escher.VarInt -1
-  , id = Escher.VarInt 0x00
-  , data_ = StatusResponseData
-      { json
-          = fromMaybe (error "unreachable")
-          . Escher.mkString
-          . LText.toStrict
-          . Aeson.encodeToLazyText
-          $ Aeson.object
-              [ "version" .= Aeson.object
-                  [ "name" .= ("1.16.5" :: Text)
-                  , "protocol" .= (754 :: Int)
-                  ]
-              , "players" .= Aeson.object
-                  [ "max" .= (10 :: Int)
-                  , "online" .= (0 :: Int)
-                  , "sample" .= ([] :: [()])
-                  ]
-              , "description" .= Aeson.object
-                  [ "text" .= ("Hello world" :: Text)
-                  ]
-              , "favicon" .= ("data:image/png;base64," :: Text)
-              ]
-      }
-  }
+statusResponse =
+  mkPacket (Escher.VarInt 0x00) StatusResponseData
+    { json
+        = fromMaybe (error "unreachable")
+        . Escher.mkString
+        . LText.toStrict
+        . Aeson.encodeToLazyText
+        $ Aeson.object
+            [ "version" .= Aeson.object
+                [ "name" .= ("1.16.5" :: Text)
+                , "protocol" .= (754 :: Int)
+                ]
+            , "players" .= Aeson.object
+                [ "max" .= (10 :: Int)
+                , "online" .= (0 :: Int)
+                , "sample" .= ([] :: [()])
+                ]
+            , "description" .= Aeson.object
+                [ "text" .= ("Hello world" :: Text)
+                ]
+            , "favicon" .= ("data:image/png;base64," :: Text)
+            ]
+    }
 
 type StatusResponse = PacketWith StatusResponseData
