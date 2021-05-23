@@ -12,7 +12,6 @@
 module Escher.Packets
   ( PacketWith (..)
   , Packet
-  , mkPacket
   , pattern Packet
   , HandshakeData (..)
   , Handshake
@@ -45,19 +44,21 @@ data PacketWith data_ = UnsafePacket
 
 type Packet = PacketWith Escher.ByteArray
 
-mkPacket :: Cereal.Serialize data_ => Escher.VarInt -> data_ -> PacketWith data_
-mkPacket id data_ = UnsafePacket
-  { length
-      = Escher.VarInt
-      . fromIntegral
-      . ByteString.length
-      $ Cereal.encode id <> Cereal.encode data_
-  , id
-  , data_
-  }
-
-pattern Packet :: Escher.VarInt -> data_ -> PacketWith data_
-pattern Packet id data_ <- UnsafePacket{id, data_}
+pattern Packet
+  :: Cereal.Serialize data_
+  => Escher.VarInt
+  -> data_
+  -> PacketWith data_
+pattern Packet id data_ <- UnsafePacket{id, data_} where
+  Packet id data_ = UnsafePacket
+    { length
+        = Escher.VarInt
+        . fromIntegral
+        . ByteString.length
+        $ Cereal.encode id <> Cereal.encode data_
+    , id
+    , data_
+    }
 
 instance {-# OVERLAPPING #-} Cereal.Serialize Packet where
   put :: Cereal.Putter Packet
@@ -98,7 +99,7 @@ data StatusResponseData = StatusResponseData
 
 statusResponse :: StatusResponse
 statusResponse =
-  mkPacket (Escher.VarInt 0x00) StatusResponseData
+  Packet (Escher.VarInt 0x00) StatusResponseData
     { json
         = Escher.String
         . LText.toStrict
