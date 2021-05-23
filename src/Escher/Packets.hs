@@ -24,7 +24,6 @@ module Escher.Packets
 where
 
 import Data.Aeson ((.=))
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Prelude hiding (id, length)
@@ -101,8 +100,7 @@ statusResponse :: StatusResponse
 statusResponse =
   mkPacket (Escher.VarInt 0x00) StatusResponseData
     { json
-        = fromMaybe (error "unreachable")
-        . Escher.mkString
+        = Escher.String
         . LText.toStrict
         . Aeson.encodeToLazyText
         $ Aeson.object

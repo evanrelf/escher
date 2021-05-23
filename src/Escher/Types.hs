@@ -22,7 +22,6 @@ module Escher.Types
   , Double (..)
   , String
   , pattern String
-  , mkString
   , Chat (..)
   , Identifier (..)
   , VarInt (..)
@@ -82,19 +81,17 @@ data String (n :: Nat) = UnsafeString
   , string :: Text
   } deriving stock Show
 
-mkString :: forall n. KnownNat n => Text -> Maybe (String n)
-mkString string
-  | maxBytes == 0 || fromIntegral bytes <= maxBytes =
-      Just UnsafeString{size, string}
-  | otherwise =
-      Nothing
-  where
-    bytes = ByteString.length (Cereal.encode string)
-    maxBytes = natVal (Proxy @n)
-    size = VarInt (fromIntegral bytes)
-
-pattern String :: Text -> String n
-pattern String string <- UnsafeString{string}
+pattern String :: forall n. KnownNat n => () => Text -> String n
+pattern String string <- UnsafeString{string} where
+  String string
+    | maxBytes == 0 || fromIntegral bytes <= maxBytes =
+        UnsafeString{size, string}
+    | otherwise =
+        error ("String exceeded max size of " <> show maxBytes <> " bytes")
+    where
+      bytes = ByteString.length (Cereal.encode string)
+      maxBytes = natVal (Proxy @n)
+      size = VarInt (fromIntegral bytes)
 
 instance Cereal.Serialize (String n) where
   put :: Cereal.Putter (String n)
