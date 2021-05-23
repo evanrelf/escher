@@ -6,6 +6,7 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
@@ -19,7 +20,7 @@ import Control.Monad.Reader (MonadReader (..), ReaderT, runReaderT)
 import Control.Monad.State.Strict (MonadState (..), StateT, evalStateT)
 import Data.ByteString (ByteString)
 import Escher.Packets
-import Network.Run.TCP (runTCPServer)
+import Network.Run.TCP (runTCPClient, runTCPServer)
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.ByteString as ByteString
@@ -29,6 +30,22 @@ import qualified Network.Socket.ByteString as Network
 
 main :: IO ()
 main = server
+
+client :: IO ()
+client = runTCPClient "localhost" "25565" $ runEscher do
+  send @Handshake $ Packet 0x00 HandshakeData
+    { protocolVersion = 754
+    , serverAddress = "localhost"
+    , serverPort = 25565
+    , nextState = 1
+    }
+  liftIO $ putStrLn "Sent handshake"
+
+  send @StatusRequest (Packet 0x00 ())
+  liftIO $ putStrLn "Sent status request"
+
+  packet <- receive @Packet
+  liftIO $ print packet
 
 server :: IO ()
 server = do
