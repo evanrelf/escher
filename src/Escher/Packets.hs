@@ -20,6 +20,8 @@ module Escher.Packets
   , StatusResponse
   , statusResponse
   , Ping
+  , Pong
+  , pong
   )
 where
 
@@ -124,3 +126,8 @@ statusResponse =
 type StatusResponse = PacketWith StatusResponseData
 
 type Ping = PacketWith Escher.Long
+
+type Pong = PacketWith Escher.Long
+
+pong :: Escher.Long -> Pong
+pong n = Packet (Escher.VarInt 0x01) n
