@@ -1,4 +1,18 @@
+# Haskell
 dist/
 dist-newstyle/
+
+# Nix
 result
 result-*
+
+# Minecraft
+eula.txt
+logs/
+server.properties
+banned-ips.json
+banned-players.json
+ops.json
+usercache.json
+whitelist.json
+world/
