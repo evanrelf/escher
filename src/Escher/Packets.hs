@@ -26,10 +26,11 @@ data PacketWith data_ = Packet
   , id :: Escher.VarInt
   , data_ :: data_
   } deriving stock (Generic, Show)
+    deriving anyclass Cereal.Serialize
 
 type Packet = PacketWith Escher.ByteArray
 
-instance Cereal.Serialize Packet where
+instance {-# OVERLAPPING #-} Cereal.Serialize Packet where
   put :: Cereal.Putter Packet
   put Packet{length, id, data_ = Escher.ByteArray bytes} = do
     Cereal.put length
@@ -58,5 +59,3 @@ data HandshakeData = HandshakeData
     deriving anyclass Cereal.Serialize
 
 type Handshake = PacketWith HandshakeData
-
-instance Cereal.Serialize Handshake where
