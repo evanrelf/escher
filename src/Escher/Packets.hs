@@ -104,7 +104,7 @@ type StatusResponse = PacketWith StatusResponseData
 
 statusResponse :: StatusResponse
 statusResponse =
-  Packet (Escher.VarInt 0x00) StatusResponseData
+  Packet 0x00 StatusResponseData
     { json
         = Escher.String
         . LText.toStrict
@@ -130,4 +130,4 @@ type Ping = PacketWith Escher.Long
 type Pong = PacketWith Escher.Long
 
 pong :: Escher.Long -> Pong
-pong n = Packet (Escher.VarInt 0x01) n
+pong n = Packet 0x01 n

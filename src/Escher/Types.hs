@@ -59,24 +59,30 @@ data TODO
 newtype Boolean = Boolean Bool
 
 newtype Byte = Byte Int8
+  deriving newtype Num
 
 newtype UnsignedByte = UnsignedByte Word8
+  deriving newtype Num
 
 newtype Short = Short Int16
+  deriving newtype Num
 
 newtype UnsignedShort = UnsignedShort Word16
   deriving stock Show
-  deriving newtype Cereal.Serialize
+  deriving newtype (Num, Cereal.Serialize)
 
 newtype Int = Int Int32
+  deriving newtype Num
 
 newtype Long = Long Int64
   deriving stock Show
   deriving newtype Cereal.Serialize
 
 newtype Float = Float Prelude.Float
+  deriving newtype Num
 
 newtype Double = Double Prelude.Double
+  deriving newtype Num
 
 data String (n :: Nat) = UnsafeString
   { size :: VarInt
@@ -115,6 +121,7 @@ newtype Identifier = Identifier (String 32767)
 
 newtype VarInt = VarInt { unVarInt :: Int32 }
   deriving stock Show
+  deriving newtype Num
 
 -- TODO: Enforce 1-5 bytes
 instance Cereal.Serialize VarInt where
@@ -125,6 +132,7 @@ instance Cereal.Serialize VarInt where
   get = VarInt <$> Leb128.getSLEB128
 
 newtype VarLong = VarLong { unVarLong :: Int64 }
+  deriving newtype Num
 
 -- TODO: Enforce 1-10 bytes
 instance Cereal.Serialize VarLong where
@@ -143,6 +151,7 @@ newtype NbtTag = NbtTag TODO
 newtype Position = Position TODO
 
 newtype Angle = Angle Word8
+  deriving newtype Num
 
 newtype Uuid = Uuid TODO
 
@@ -152,7 +161,7 @@ newtype Array a = Array [a]
 
 newtype Enum a = Enum a
   deriving stock Show
-  deriving newtype Cereal.Serialize
+  deriving newtype (Num, Cereal.Serialize)
 
 newtype ByteArray = ByteArray LByteString.ByteString
   deriving stock Show
