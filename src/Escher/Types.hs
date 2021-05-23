@@ -4,6 +4,9 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
@@ -17,7 +20,9 @@ module Escher.Types
   , Long (..)
   , Float (..)
   , Double (..)
-  , String (..)
+  , String
+  , pattern String
+  , mkString
   , Chat (..)
   , Identifier (..)
   , VarInt (..)
@@ -36,11 +41,14 @@ module Escher.Types
 where
 
 import Data.Int (Int16, Int32, Int64, Int8)
+import Data.Proxy (Proxy (..))
+import Data.Serialize.Text ()
 import Data.Text (Text)
 import Data.Word (Word16, Word8)
-import GHC.TypeLits (Nat)
+import GHC.TypeLits (KnownNat, Nat, natVal)
 import Prelude hiding (Double, Enum, Float, Int, String)
 
+import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as LByteString
 import qualified Data.Serialize as Cereal
 import qualified Data.Serialize.LEB128 as Leb128
@@ -69,14 +77,28 @@ newtype Float = Float Prelude.Float
 
 newtype Double = Double Prelude.Double
 
-data String (length :: Nat) = String
+data String (n :: Nat) = UnsafeString
   { size :: VarInt
   , string :: Text
   } deriving stock Show
 
+mkString :: forall n. KnownNat n => Text -> Maybe (String n)
+mkString string
+  | maxBytes == 0 || fromIntegral bytes <= maxBytes =
+      Just UnsafeString{size, string}
+  | otherwise =
+      Nothing
+  where
+    bytes = ByteString.length (Cereal.encode string)
+    maxBytes = natVal (Proxy @n)
+    size = VarInt (fromIntegral bytes)
+
+pattern String :: Text -> String n
+pattern String string <- UnsafeString{string}
+
 instance Cereal.Serialize (String n) where
   put :: Cereal.Putter (String n)
-  put String{size, string} = do
+  put UnsafeString{size, string} = do
     Cereal.put size
     Cereal.putByteString (Text.encodeUtf8 string)
 
@@ -86,7 +108,7 @@ instance Cereal.Serialize (String n) where
     string <- do
       bytes <- Cereal.getByteString (fromIntegral $ unVarInt size)
       pure (Text.decodeUtf8 bytes)
-    pure String{size, string}
+    pure UnsafeString{size, string}
 
 newtype Chat = Chat (String 262144)
 

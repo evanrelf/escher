@@ -21,6 +21,7 @@ module Escher.Packets
 where
 
 import Data.Aeson ((.=))
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Prelude hiding (id, length)
@@ -75,16 +76,20 @@ type StatusRequest = PacketWith ()
 
 data StatusResponseData = StatusResponseData
   { json :: Escher.String 0
-  } deriving anyclass Cereal.Serialize
+  } deriving stock Generic
+    deriving anyclass Cereal.Serialize
 
 statusResponse :: StatusResponse
 statusResponse = Packet
   { length = Escher.VarInt -1
   , id = Escher.VarInt 0x00
   , data_ = StatusResponseData
-      { json = Escher.String
-          { Escher.size = Escher.VarInt -1
-          , Escher.string = LText.toStrict . Aeson.encodeToLazyText $ Aeson.object
+      { json
+          = fromMaybe (error "unreachable")
+          . Escher.mkString
+          . LText.toStrict
+          . Aeson.encodeToLazyText
+          $ Aeson.object
               [ "version" .= Aeson.object
                   [ "name" .= ("1.16.5" :: Text)
                   , "protocol" .= (754 :: Int)
@@ -99,7 +104,6 @@ statusResponse = Packet
                   ]
               , "favicon" .= ("data:image/png;base64," :: Text)
               ]
-          }
       }
   }
 
