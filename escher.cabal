@@ -19,6 +19,7 @@ library
     , cereal
     , cereal-text
     , leb128-cereal
+    , mtl
     , network
     , network-run
     , text

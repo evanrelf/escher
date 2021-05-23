@@ -1,6 +1,10 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE ExplicitForAll #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -8,6 +12,9 @@
 
 module Escher where
 
+import Control.Monad.IO.Class (MonadIO (..))
+import Control.Monad.Reader (MonadReader (..), runReaderT)
+import Control.Monad.State.Strict (MonadState (..), evalStateT)
 import Data.ByteString (ByteString)
 import Escher.Packets (Handshake, StatusRequest)
 import Network.Run.TCP (runTCPServer)
@@ -16,41 +23,63 @@ import qualified Data.Serialize as Cereal
 import qualified Network.Socket as Network
 import qualified Network.Socket.ByteString as Network
 
+type MonadEscher m =
+  ( MonadIO m
+  , MonadReader Network.Socket m
+  , MonadState ByteString m
+  )
+
 main :: IO ()
 main = do
   putStrLn "Listening on port 3000"
-  runTCPServer (Just "127.0.0.1") "3000" \socket -> do
-    (result, rest) <- receive @Handshake socket Nothing
+  runTCPServer (Just "127.0.0.1") "3000" \socket ->
+      flip runReaderT socket
+    $ flip evalStateT mempty
+    $ escher
 
-    case result of
-      Left err ->
-        putStrLn ("!!! Failed to parse handshake:\n" <> err)
+escher :: MonadEscher m => m ()
+escher = do
+  receive @Handshake >>= \case
+    Left err -> liftIO do
+      putStrLn ("!!! Failed to parse handshake:\n" <> err)
 
-      Right handshake -> do
-        putStrLn "%%% Successful parsed handshake:"
-        print handshake
-        putStr "\n\n"
+    Right handshake -> liftIO do
+      putStrLn "%%% Successful parsed handshake:"
+      print handshake
+      putStr "\n\n"
 
-    (result, _rest) <- receive @StatusRequest socket (Just rest)
+  receive @StatusRequest >>= \case
+    Left err -> liftIO do
+      putStrLn ("!!! Failed to parse status request:\n" <> err)
 
-    case result of
-      Left err ->
-        putStrLn ("!!! Failed to parse status request:\n" <> err)
-
-      Right statusRequest -> do
-        putStrLn "%%% Successful parsed status request:"
-        print statusRequest
-        putStr "\n\n"
+    Right statusRequest -> liftIO do
+      putStrLn "%%% Successful parsed status request:"
+      print statusRequest
+      putStr "\n\n"
 
 receive
-  :: Cereal.Serialize a
+  :: forall a m
+   . MonadEscher m
+  => Cereal.Serialize a
+  => m (Either String a)
+receive = do
+  socket <- ask
+  bytes <- get
+  (result, rest) <- receive' socket (Just bytes)
+  put rest
+  pure result
+
+receive'
+  :: forall a m
+   . MonadIO m
+  => Cereal.Serialize a
   => Network.Socket
   -> Maybe ByteString
-  -> IO (Either String a, ByteString)
-receive socket = go (Cereal.runGetPartial Cereal.get)
+  -> m (Either String a, ByteString)
+receive' socket = liftIO . go (Cereal.runGetPartial Cereal.get)
   where
-    go k start = do
-      bytes <- case start of
+    go k maybeBytes = do
+      bytes <- case maybeBytes of
         Just bytes -> pure bytes
         Nothing -> Network.recv socket 1024
 
