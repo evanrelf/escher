@@ -2,4 +2,8 @@ let
   pkgs = import ./nix/nixpkgs.nix { };
 
 in
-pkgs.haskellPackages.callCabal2nix "escher" ./. { }
+{
+  escher = pkgs.haskellPackages.callCabal2nix "escher" ./. { };
+
+  minecraft-server = pkgs.callPackage ./nix/minecraft-server.nix { };
+}
