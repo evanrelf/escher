@@ -25,7 +25,7 @@ data PacketWith data_ = Packet
   { length :: Escher.VarInt
   , id :: Escher.VarInt
   , data_ :: data_
-  } deriving stock Generic
+  } deriving stock (Generic, Show)
 
 type Packet = PacketWith Escher.ByteArray
 
@@ -54,7 +54,7 @@ data HandshakeData = HandshakeData
   , serverAddress :: Escher.String 255
   , serverPort :: Escher.UnsignedShort
   , nextState :: Escher.Enum Escher.VarInt
-  } deriving stock Generic
+  } deriving stock (Generic, Show)
     deriving anyclass Cereal.Serialize
 
 type Handshake = PacketWith HandshakeData

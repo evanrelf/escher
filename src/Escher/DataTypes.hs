@@ -58,6 +58,7 @@ newtype UnsignedByte = UnsignedByte Word8
 newtype Short = Short Int16
 
 newtype UnsignedShort = UnsignedShort Word16
+  deriving stock Show
   deriving newtype Cereal.Serialize
 
 newtype Int = Int Int32
@@ -71,7 +72,7 @@ newtype Double = Double Prelude.Double
 data String (length :: Nat) = String
   { size :: VarInt
   , string :: Text
-  }
+  } deriving stock Show
 
 instance Cereal.Serialize (String n) where
   put :: Cereal.Putter (String n)
@@ -92,6 +93,7 @@ newtype Chat = Chat (String 262144)
 newtype Identifier = Identifier (String 32767)
 
 newtype VarInt = VarInt { unVarInt :: Int32 }
+  deriving stock Show
 
 -- TODO: Enforce 1-5 bytes
 instance Cereal.Serialize VarInt where
@@ -128,6 +130,8 @@ newtype Optional a = Optional (Maybe a)
 newtype Array a = Array [a]
 
 newtype Enum a = Enum a
+  deriving stock Show
   deriving newtype Cereal.Serialize
 
 newtype ByteArray = ByteArray LByteString.ByteString
+  deriving stock Show
