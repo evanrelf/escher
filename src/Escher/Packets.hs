@@ -12,6 +12,8 @@ module Escher.Packets
   , HandshakeData (..)
   , Handshake
   , StatusRequest
+  , StatusResponseData (..)
+  , StatusResponse
   )
 where
 
@@ -62,3 +64,9 @@ data HandshakeData = HandshakeData
 type Handshake = PacketWith HandshakeData
 
 type StatusRequest = PacketWith ()
+
+data StatusResponseData = StatusResponseData
+  { json :: Escher.String 0
+  } deriving anyclass Cereal.Serialize
+
+type StatusResponse = PacketWith StatusResponseData
