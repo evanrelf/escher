@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
@@ -41,6 +42,7 @@ import Prelude hiding (Double, Enum, Float, Int, String)
 import qualified Data.ByteString.Lazy as LByteString
 import qualified Data.Serialize as Cereal
 import qualified Data.Serialize.LEB128 as Leb128
+import qualified Data.Text.Encoding as Text
 import qualified Prelude
 
 data TODO
@@ -67,6 +69,20 @@ data String (length :: Nat) = String
   { size :: VarInt
   , string :: Text
   }
+
+instance Cereal.Serialize (String n) where
+  put :: Cereal.Putter (String n)
+  put String{size, string} = do
+    Cereal.put size
+    Cereal.putByteString (Text.encodeUtf8 string)
+
+  get :: Cereal.Get (String n)
+  get = do
+    size <- Cereal.get
+    string <- do
+      bytes <- Cereal.getByteString (fromIntegral $ unVarInt size)
+      pure (Text.decodeUtf8 bytes)
+    pure String{size, string}
 
 newtype Chat = Chat (String 262144)
 
