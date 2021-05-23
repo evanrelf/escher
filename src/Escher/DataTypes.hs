@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE KindSignatures #-}
 
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
@@ -38,6 +39,8 @@ import GHC.TypeLits (Nat)
 import Prelude hiding (Double, Enum, Float, Int, String)
 
 import qualified Data.ByteString.Lazy as LByteString
+import qualified Data.Serialize as Cereal
+import qualified Data.Serialize.LEB128 as Leb128
 import qualified Prelude
 
 data TODO
@@ -69,9 +72,25 @@ newtype Chat = Chat (String 262144)
 
 newtype Identifier = Identifier (String 32767)
 
-newtype VarInt = VarInt Int32
+newtype VarInt = VarInt { unVarInt :: Int32 }
 
-newtype VarLong = VarLong Int64
+-- TODO: Enforce 1-5 bytes
+instance Cereal.Serialize VarInt where
+  put :: Cereal.Putter VarInt
+  put = Leb128.putSLEB128 . unVarInt
+
+  get :: Cereal.Get VarInt
+  get = VarInt <$> Leb128.getSLEB128
+
+newtype VarLong = VarLong { unVarLong :: Int64 }
+
+-- TODO: Enforce 1-10 bytes
+instance Cereal.Serialize VarLong where
+  put :: Cereal.Putter VarLong
+  put = Leb128.putSLEB128 . unVarLong
+
+  get :: Cereal.Get VarLong
+  get = VarLong <$> Leb128.getSLEB128
 
 newtype EntityMetadata = EntityMetadata TODO
 
