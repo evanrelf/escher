@@ -19,6 +19,7 @@ import Data.ByteString (ByteString)
 import Escher.Packets (Handshake, StatusRequest)
 import Network.Run.TCP (runTCPServer)
 
+import qualified Data.ByteString as ByteString
 import qualified Data.Serialize as Cereal
 import qualified Network.Socket as Network
 import qualified Network.Socket.ByteString as Network
@@ -80,8 +81,10 @@ receive' socket = liftIO . go (Cereal.runGetPartial Cereal.get)
   where
     go k maybeBytes = do
       bytes <- case maybeBytes of
-        Just bytes -> pure bytes
-        Nothing -> Network.recv socket 1024
+        Just bytes | not . ByteString.null $ bytes ->
+          pure bytes
+        _ ->
+          Network.recv socket 1024
 
       case k bytes of
         Cereal.Fail err rest -> pure (Left err, rest)
