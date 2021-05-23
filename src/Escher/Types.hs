@@ -7,7 +7,7 @@
 
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module Escher.DataTypes
+module Escher.Types
   ( Boolean (..)
   , Byte (..)
   , UnsignedByte (..)

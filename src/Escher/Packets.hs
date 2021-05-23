@@ -19,7 +19,7 @@ import Prelude hiding (id, length)
 
 import qualified Data.ByteString.Lazy as LByteString
 import qualified Data.Serialize as Cereal
-import qualified Escher.DataTypes as Escher
+import qualified Escher.Types as Escher
 
 data PacketWith data_ = Packet
   { length :: Escher.VarInt
