@@ -12,13 +12,12 @@
 
 module Escher where
 
-import Control.Monad ((>=>))
-import Control.Monad.Except (MonadError (..), liftEither, runExceptT)
+import Control.Monad ((<=<))
+import Control.Monad.Except (ExceptT, MonadError (..), liftEither, runExceptT)
 import Control.Monad.IO.Class (MonadIO (..))
-import Control.Monad.Reader (MonadReader (..), runReaderT)
-import Control.Monad.State.Strict (MonadState (..), evalStateT)
+import Control.Monad.Reader (MonadReader (..), ReaderT, runReaderT)
+import Control.Monad.State.Strict (MonadState (..), StateT, evalStateT)
 import Data.ByteString (ByteString)
-import Data.Function ((&))
 import Escher.Packets
 import Network.Run.TCP (runTCPServer)
 
@@ -31,21 +30,10 @@ import qualified Network.Socket.ByteString as Network
 main :: IO ()
 main = do
   putStrLn "Listening on port 3000"
-  runTCPServer (Just "127.0.0.1") "3000" \socket ->
-    serverListPing
-      & flip runReaderT socket
-      & flip evalStateT mempty
-      & (runExceptT >=> either fail pure)
+  serverListPing
 
--- https://wiki.vg/Server_List_Ping
-serverListPing
-  :: MonadIO m
-  => MonadReader Network.Socket m
-  => MonadState ByteString m
-  => MonadError String m
-  => MonadFail m
-  => m ()
-serverListPing = do
+serverListPing :: IO ()
+serverListPing = runTCPServer (Just "127.0.0.1") "3000" $ runEscher do
   _ <- receive @Handshake
   liftIO $ putStrLn "Received handshake"
 
@@ -64,6 +52,16 @@ serverListPing = do
   socket <- ask
   liftIO $ Network.shutdown socket Network.ShutdownBoth
   liftIO $ putStrLn "Closed socket"
+
+runEscher
+  :: ReaderT Network.Socket (StateT ByteString (ExceptT String IO)) a
+  -> Network.Socket
+  -> IO a
+runEscher m socket
+  = (either fail pure <=< runExceptT)
+  . flip evalStateT (mempty :: ByteString)
+  . flip runReaderT socket
+  $ m
 
 receive
   :: forall a m
