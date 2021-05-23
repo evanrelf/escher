@@ -71,6 +71,8 @@ newtype UnsignedShort = UnsignedShort Word16
 newtype Int = Int Int32
 
 newtype Long = Long Int64
+  deriving stock Show
+  deriving newtype Cereal.Serialize
 
 newtype Float = Float Prelude.Float
 

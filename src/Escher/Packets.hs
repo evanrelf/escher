@@ -19,6 +19,7 @@ module Escher.Packets
   , StatusResponseData (..)
   , StatusResponse
   , statusResponse
+  , Ping
   )
 where
 
@@ -121,3 +122,5 @@ statusResponse =
     }
 
 type StatusResponse = PacketWith StatusResponseData
+
+type Ping = PacketWith Escher.Long
