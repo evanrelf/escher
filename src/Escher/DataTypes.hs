@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
@@ -33,13 +32,13 @@ module Escher.DataTypes
 where
 
 import Data.Int (Int16, Int32, Int64, Int8)
-import Data.Maybe (Maybe)
 import Data.Text (Text)
 import Data.Word (Word16, Word8)
 import GHC.TypeLits (Nat)
-import Data.Bool (Bool)
+import Prelude hiding (Double, Enum, Float, Int, String)
 
 import qualified Data.ByteString.Lazy as LByteString
+import qualified Prelude
 
 data TODO
 
@@ -57,9 +56,9 @@ newtype Int = Int Int32
 
 newtype Long = Long Int64
 
-newtype Float = Float Float
+newtype Float = Float Prelude.Float
 
-newtype Double = Double Float
+newtype Double = Double Prelude.Double
 
 data String (length :: Nat) = String
   { size :: VarInt
