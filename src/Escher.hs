@@ -28,30 +28,30 @@ import qualified Network.Socket as Network
 import qualified Network.Socket.ByteString as Network
 
 main :: IO ()
-main = do
+main = server
+
+server :: IO ()
+server = do
   putStrLn "Listening on port 3000"
-  serverListPing
+  runTCPServer (Just "127.0.0.1") "3000" $ runEscher do
+    _ <- receive @Handshake
+    liftIO $ putStrLn "Received handshake"
 
-serverListPing :: IO ()
-serverListPing = runTCPServer (Just "127.0.0.1") "3000" $ runEscher do
-  _ <- receive @Handshake
-  liftIO $ putStrLn "Received handshake"
+    _ <- receive @StatusRequest
+    liftIO $ putStrLn "Received status request"
 
-  _ <- receive @StatusRequest
-  liftIO $ putStrLn "Received status request"
+    send @StatusResponse statusResponse
+    liftIO $ putStrLn "Sent status response"
 
-  send @StatusResponse statusResponse
-  liftIO $ putStrLn "Sent status response"
+    Packet _ n <- receive @Ping
+    liftIO $ putStrLn "Received ping"
 
-  Packet _ n <- receive @Ping
-  liftIO $ putStrLn "Received ping"
+    send @Pong (pong n)
+    liftIO $ putStrLn "Sent pong"
 
-  send @Pong (pong n)
-  liftIO $ putStrLn "Sent pong"
-
-  socket <- ask
-  liftIO $ Network.shutdown socket Network.ShutdownBoth
-  liftIO $ putStrLn "Closed socket"
+    socket <- ask
+    liftIO $ Network.shutdown socket Network.ShutdownBoth
+    liftIO $ putStrLn "Closed socket"
 
 runEscher
   :: ReaderT Network.Socket (StateT ByteString (ExceptT String IO)) a
