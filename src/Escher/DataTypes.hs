@@ -1,4 +1,6 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -56,6 +58,7 @@ newtype UnsignedByte = UnsignedByte Word8
 newtype Short = Short Int16
 
 newtype UnsignedShort = UnsignedShort Word16
+  deriving newtype Cereal.Serialize
 
 newtype Int = Int Int32
 
@@ -125,5 +128,6 @@ newtype Optional a = Optional (Maybe a)
 newtype Array a = Array [a]
 
 newtype Enum a = Enum a
+  deriving newtype Cereal.Serialize
 
 newtype ByteArray = ByteArray LByteString.ByteString

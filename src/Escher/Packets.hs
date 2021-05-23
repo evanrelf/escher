@@ -1,4 +1,7 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -11,6 +14,7 @@ module Escher.Packets
   )
 where
 
+import GHC.Generics (Generic)
 import Prelude hiding (id, length)
 
 import qualified Data.ByteString.Lazy as LByteString
@@ -21,7 +25,7 @@ data PacketWith data_ = Packet
   { length :: Escher.VarInt
   , id :: Escher.VarInt
   , data_ :: data_
-  }
+  } deriving stock Generic
 
 type Packet = PacketWith Escher.ByteArray
 
@@ -50,6 +54,9 @@ data HandshakeData = HandshakeData
   , serverAddress :: Escher.String 255
   , serverPort :: Escher.UnsignedShort
   , nextState :: Escher.Enum Escher.VarInt
-  }
+  } deriving stock Generic
+    deriving anyclass Cereal.Serialize
 
 type Handshake = PacketWith HandshakeData
+
+instance Cereal.Serialize Handshake where
