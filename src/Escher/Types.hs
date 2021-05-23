@@ -42,6 +42,7 @@ where
 import Data.Int (Int16, Int32, Int64, Int8)
 import Data.Proxy (Proxy (..))
 import Data.Serialize.Text ()
+import Data.String (IsString (..))
 import Data.Text (Text)
 import Data.Word (Word16, Word8)
 import GHC.TypeLits (KnownNat, Nat, natVal)
@@ -101,6 +102,9 @@ pattern String string <- UnsafeString{string} where
       maxBytes = natVal (Proxy @n)
       size = VarInt (fromIntegral bytes)
 
+instance KnownNat n => IsString (String n) where
+  fromString = String . fromString
+
 instance Cereal.Serialize (String n) where
   put :: Cereal.Putter (String n)
   put UnsafeString{size, string} = do
@@ -116,8 +120,10 @@ instance Cereal.Serialize (String n) where
     pure UnsafeString{size, string}
 
 newtype Chat = Chat (String 262144)
+  deriving newtype IsString
 
 newtype Identifier = Identifier (String 32767)
+  deriving newtype IsString
 
 newtype VarInt = VarInt { unVarInt :: Int32 }
   deriving stock Show
@@ -165,3 +171,4 @@ newtype Enum a = Enum a
 
 newtype ByteArray = ByteArray LByteString.ByteString
   deriving stock Show
+  deriving newtype IsString
