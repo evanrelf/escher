@@ -84,3 +84,23 @@ receive' socket = liftIO . go (Cereal.runGetPartial Cereal.get)
         Cereal.Fail err rest -> pure (Left err, rest)
         Cereal.Done x rest -> pure (Right x, rest)
         Cereal.Partial k' -> go k' Nothing
+
+send
+  :: forall a m
+   . MonadIO m
+  => MonadReader Network.Socket m
+  => Cereal.Serialize a
+  => a
+  -> m ()
+send x = do
+  socket <- ask
+  send' socket x
+
+send'
+  :: forall a m
+   . MonadIO m
+  => Cereal.Serialize a
+  => Network.Socket
+  -> a
+  -> m ()
+send' socket x = liftIO $ Network.sendAll socket (Cereal.encode x)
