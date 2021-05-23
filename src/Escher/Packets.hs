@@ -1,22 +1,28 @@
 {-# LANGUAGE DataKinds #-}
 
 module Escher.Packets
-  ( Packet (..)
-  , Handshake (..)
+  ( PacketWith (..)
+  , Packet
+  , HandshakeData (..)
+  , Handshake
   )
 where
 
 import qualified Escher.DataTypes as Escher
 
-data Packet = Packet
+data PacketWith data_ = Packet
   { length :: Escher.VarInt
-  , packetId :: Escher.VarInt
-  , data_ :: Escher.ByteArray
+  , id :: Escher.VarInt
+  , data_ :: data_
   }
 
-data Handshake = Handshake
+type Packet = PacketWith Escher.ByteArray
+
+data HandshakeData = HandshakeData
   { protocolVersion :: Escher.VarInt
   , serverAddress :: Escher.String 255
   , serverPort :: Escher.UnsignedShort
-  , nextState :: Escher.VarInt
+  , nextState :: Escher.Enum Escher.VarInt
   }
+
+type Handshake = PacketWith HandshakeData
