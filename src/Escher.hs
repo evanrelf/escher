@@ -12,13 +12,17 @@
 
 module Escher where
 
+import Control.Monad ((>=>))
+import Control.Monad.Except (MonadError (..), liftEither, runExceptT)
 import Control.Monad.IO.Class (MonadIO (..))
 import Control.Monad.Reader (MonadReader (..), runReaderT)
 import Control.Monad.State.Strict (MonadState (..), evalStateT)
 import Data.ByteString (ByteString)
+import Data.Function ((&))
 import Escher.Packets (Handshake, StatusRequest)
 import Network.Run.TCP (runTCPServer)
 
+import qualified Data.Bifunctor as Bifunctor
 import qualified Data.ByteString as ByteString
 import qualified Data.Serialize as Cereal
 import qualified Network.Socket as Network
@@ -28,47 +32,37 @@ type MonadEscher m =
   ( MonadIO m
   , MonadReader Network.Socket m
   , MonadState ByteString m
+  , MonadError String m
   )
 
 main :: IO ()
 main = do
   putStrLn "Listening on port 3000"
   runTCPServer (Just "127.0.0.1") "3000" \socket ->
-      flip runReaderT socket
-    $ flip evalStateT mempty
-    $ escher
+    escher
+      & flip runReaderT socket
+      & flip evalStateT mempty
+      & (runExceptT >=> either fail pure)
 
 escher :: MonadEscher m => m ()
 escher = do
-  receive @Handshake >>= \case
-    Left err -> liftIO do
-      putStrLn ("!!! Failed to parse handshake:\n" <> err)
+  receive @Handshake >>= \handshake -> liftIO do
+    putStrLn "%%% Successful parsed handshake:"
+    print handshake
+    putStr "\n\n"
 
-    Right handshake -> liftIO do
-      putStrLn "%%% Successful parsed handshake:"
-      print handshake
-      putStr "\n\n"
+  receive @StatusRequest >>= \statusRequest -> liftIO do
+    putStrLn "%%% Successful parsed status request:"
+    print statusRequest
+    putStr "\n\n"
 
-  receive @StatusRequest >>= \case
-    Left err -> liftIO do
-      putStrLn ("!!! Failed to parse status request:\n" <> err)
-
-    Right statusRequest -> liftIO do
-      putStrLn "%%% Successful parsed status request:"
-      print statusRequest
-      putStr "\n\n"
-
-receive
-  :: forall a m
-   . MonadEscher m
-  => Cereal.Serialize a
-  => m (Either String a)
+receive :: forall a m . MonadEscher m => Cereal.Serialize a => m a
 receive = do
   socket <- ask
   bytes <- get
   (result, rest) <- receive' socket (Just bytes)
   put rest
-  pure result
+  liftEither (Bifunctor.first ("Failed to decode packet:\n" <>) result)
 
 receive'
   :: forall a m
