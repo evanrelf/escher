@@ -11,6 +11,7 @@ module Escher.Packets
   , Packet
   , HandshakeData (..)
   , Handshake
+  , StatusRequest
   )
 where
 
@@ -59,3 +60,5 @@ data HandshakeData = HandshakeData
     deriving anyclass Cereal.Serialize
 
 type Handshake = PacketWith HandshakeData
+
+type StatusRequest = PacketWith ()
