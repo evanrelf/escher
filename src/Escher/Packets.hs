@@ -1,4 +1,7 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Escher.Packets
   ( PacketWith (..)
@@ -8,6 +11,10 @@ module Escher.Packets
   )
 where
 
+import Prelude hiding (id, length)
+
+import qualified Data.ByteString.Lazy as LByteString
+import qualified Data.Serialize as Cereal
 import qualified Escher.DataTypes as Escher
 
 data PacketWith data_ = Packet
@@ -17,6 +24,26 @@ data PacketWith data_ = Packet
   }
 
 type Packet = PacketWith Escher.ByteArray
+
+instance Cereal.Serialize Packet where
+  put :: Cereal.Putter Packet
+  put Packet{length, id, data_ = Escher.ByteArray bytes} = do
+    Cereal.put length
+    Cereal.put id
+    Cereal.putLazyByteString bytes
+
+  get :: Cereal.Get Packet
+  get = do
+    length <- Cereal.get
+    beforeId <- Cereal.bytesRead
+    id <- Cereal.get
+    afterId <- Cereal.bytesRead
+    let idLength = beforeId - afterId
+    let dataLength = fromIntegral (Escher.unVarInt length) - idLength
+    data_ <- do
+      bytes <- LByteString.fromStrict <$> Cereal.getBytes dataLength
+      pure (Escher.ByteArray bytes)
+    pure Packet{length, id, data_}
 
 data HandshakeData = HandshakeData
   { protocolVersion :: Escher.VarInt
