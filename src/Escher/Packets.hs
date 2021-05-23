@@ -5,6 +5,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Escher.Packets
   ( PacketWith (..)
@@ -14,14 +16,20 @@ module Escher.Packets
   , StatusRequest
   , StatusResponseData (..)
   , StatusResponse
+  , statusResponse
   )
 where
 
+import Data.Aeson ((.=))
+import Data.Text (Text)
 import GHC.Generics (Generic)
 import Prelude hiding (id, length)
 
+import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.Text as Aeson
 import qualified Data.ByteString.Lazy as LByteString
 import qualified Data.Serialize as Cereal
+import qualified Data.Text.Lazy as LText
 import qualified Escher.Types as Escher
 
 data PacketWith data_ = Packet
@@ -68,5 +76,31 @@ type StatusRequest = PacketWith ()
 data StatusResponseData = StatusResponseData
   { json :: Escher.String 0
   } deriving anyclass Cereal.Serialize
+
+statusResponse :: StatusResponse
+statusResponse = Packet
+  { length = Escher.VarInt -1
+  , id = Escher.VarInt 0x00
+  , data_ = StatusResponseData
+      { json = Escher.String
+          { Escher.size = Escher.VarInt -1
+          , Escher.string = LText.toStrict . Aeson.encodeToLazyText $ Aeson.object
+              [ "version" .= Aeson.object
+                  [ "name" .= ("1.16.5" :: Text)
+                  , "protocol" .= (754 :: Int)
+                  ]
+              , "players" .= Aeson.object
+                  [ "max" .= (10 :: Int)
+                  , "online" .= (0 :: Int)
+                  , "sample" .= ([] :: [()])
+                  ]
+              , "description" .= Aeson.object
+                  [ "text" .= ("Hello world" :: Text)
+                  ]
+              , "favicon" .= ("data:image/png;base64," :: Text)
+              ]
+          }
+      }
+  }
 
 type StatusResponse = PacketWith StatusResponseData

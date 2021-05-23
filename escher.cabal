@@ -14,6 +14,7 @@ copyright:   2021 Evan Relf
 library
   build-depends:
       base
+    , aeson
     , bytestring
     , cereal
     , leb128-cereal
