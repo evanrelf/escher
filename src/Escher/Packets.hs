@@ -117,7 +117,6 @@ statusResponse =
             , "description" .= Aeson.object
                 [ "text" .= ("Hello world" :: Text)
                 ]
-            , "favicon" .= ("data:image/png;base64," :: Text)
             ]
     }
 
