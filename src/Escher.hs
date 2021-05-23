@@ -19,7 +19,7 @@ import Control.Monad.Reader (MonadReader (..), runReaderT)
 import Control.Monad.State.Strict (MonadState (..), evalStateT)
 import Data.ByteString (ByteString)
 import Data.Function ((&))
-import Escher.Packets (Handshake, StatusRequest)
+import Escher.Packets
 import Network.Run.TCP (runTCPServer)
 
 import qualified Data.Bifunctor as Bifunctor
@@ -28,35 +28,51 @@ import qualified Data.Serialize as Cereal
 import qualified Network.Socket as Network
 import qualified Network.Socket.ByteString as Network
 
-type MonadEscher m =
-  ( MonadIO m
-  , MonadReader Network.Socket m
-  , MonadState ByteString m
-  , MonadError String m
-  )
-
 main :: IO ()
 main = do
   putStrLn "Listening on port 3000"
   runTCPServer (Just "127.0.0.1") "3000" \socket ->
-    escher
+    serverListPing
       & flip runReaderT socket
       & flip evalStateT mempty
       & (runExceptT >=> either fail pure)
 
-escher :: MonadEscher m => m ()
-escher = do
-  receive @Handshake >>= \handshake -> liftIO do
-    putStrLn "%%% Successful parsed handshake:"
-    print handshake
-    putStr "\n\n"
+-- https://wiki.vg/Server_List_Ping
+serverListPing
+  :: MonadIO m
+  => MonadReader Network.Socket m
+  => MonadState ByteString m
+  => MonadError String m
+  => MonadFail m
+  => m ()
+serverListPing = do
+  _ <- receive @Handshake
+  liftIO $ putStrLn "Received handshake"
 
-  receive @StatusRequest >>= \statusRequest -> liftIO do
-    putStrLn "%%% Successful parsed status request:"
-    print statusRequest
-    putStr "\n\n"
+  _ <- receive @StatusRequest
+  liftIO $ putStrLn "Received status request"
 
-receive :: forall a m . MonadEscher m => Cereal.Serialize a => m a
+  send @StatusResponse statusResponse
+  liftIO $ putStrLn "Sent status response"
+
+  Packet _ n <- receive @Ping
+  liftIO $ putStrLn "Received ping"
+
+  send @Pong (pong n)
+  liftIO $ putStrLn "Sent pong"
+
+  socket <- ask
+  liftIO $ Network.shutdown socket Network.ShutdownBoth
+  liftIO $ putStrLn "Closed socket"
+
+receive
+  :: forall a m
+   . MonadIO m
+  => MonadReader Network.Socket m
+  => MonadState ByteString m
+  => MonadError String m
+  => Cereal.Serialize a
+  => m a
 receive = do
   socket <- ask
   bytes <- get

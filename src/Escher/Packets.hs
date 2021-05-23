@@ -97,8 +97,10 @@ type StatusRequest = PacketWith ()
 
 data StatusResponseData = StatusResponseData
   { json :: Escher.String 0
-  } deriving stock Generic
+  } deriving stock (Generic, Show)
     deriving anyclass Cereal.Serialize
+
+type StatusResponse = PacketWith StatusResponseData
 
 statusResponse :: StatusResponse
 statusResponse =
@@ -122,8 +124,6 @@ statusResponse =
                 ]
             ]
     }
-
-type StatusResponse = PacketWith StatusResponseData
 
 type Ping = PacketWith Escher.Long
 
