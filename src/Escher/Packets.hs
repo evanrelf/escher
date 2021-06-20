@@ -111,8 +111,8 @@ statusResponse =
         . Aeson.encodeToLazyText
         $ Aeson.object
             [ "version" .= Aeson.object
-                [ "name" .= ("1.16.5" :: Text)
-                , "protocol" .= (754 :: Int)
+                [ "name" .= ("1.17" :: Text)
+                , "protocol" .= (755 :: Int)
                 ]
             , "players" .= Aeson.object
                 [ "max" .= (10 :: Int)

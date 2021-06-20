@@ -1,15 +1,24 @@
-{ bash, fetchurl, openjdk, writeShellScriptBin }:
+{ bash
+, fetchurl
+, openjdk
+, writeShellScriptBin
+  # Arguments
+, version
+, objectId
+, sha256
+}:
 
 let
   jar = fetchurl {
-    url = "https://launcher.mojang.com/v1/objects/1b557e7b033b583cd9f66746b7a9ab1ec1673ced/server.jar";
-    sha256 = "19ix6x5ij4jcwqam1dscnqwm0m251gysc2j793wjcrb9sb3jkwsq";
+    url = "https://launcher.mojang.com/v1/objects/${objectId}/server.jar";
+    inherit sha256;
   };
+
 in
 (writeShellScriptBin "minecraft-server" ''
   exec "${openjdk}/bin/java" -Xms1024M -Xmx1024M -jar "${jar}" --nogui "$@"
 '').overrideAttrs (old: rec {
   name = "${pname}-${version}";
   pname = "minecraft-server";
-  version = "1.16.5";
+  inherit version;
 })
