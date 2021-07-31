@@ -34,7 +34,7 @@ main = server
 client :: IO ()
 client = runTCPClient "localhost" "25565" $ runEscher do
   send @Handshake $ Packet 0x00 HandshakeData
-    { protocolVersion = 755
+    { protocolVersion = 756
     , serverAddress = "localhost"
     , serverPort = 25565
     , nextState = 1

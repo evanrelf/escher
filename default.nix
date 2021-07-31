@@ -5,7 +5,7 @@ in
 rec {
   escher = pkgs.haskellPackages.callCabal2nix "escher" ./. { };
 
-  minecraft-server = minecraft-server_1_17;
+  minecraft-server = minecraft-server_1_17_1;
 
   minecraft-server_1_16_5 = pkgs.callPackage ./nix/minecraft-server.nix {
     version = "1.16.5";
@@ -17,5 +17,11 @@ rec {
     version = "1.17";
     objectId = "0a269b5f2c5b93b1712d0f5dc43b6182b9ab254e";
     sha256 = "0jqz7hpx7zvjj2n5rfrh8jmdj6ziqyp8c9nq4sr4jmkbky6hsfbv";
+  };
+
+  minecraft-server_1_17_1 = pkgs.callPackage ./nix/minecraft-server.nix {
+    version = "1.17.1";
+    objectId = "a16d67e5807f57fc4e550299cf20226194497dc2";
+    sha256 = "0pzmzagvrrapjsnd8xg4lqwynwnb5rcqk2n9h2kzba8p2fs13hp8";
   };
 }
