@@ -4,6 +4,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -131,11 +132,11 @@ instance Cereal.Serialize (String n) where
     pure UnsafeString{size, string}
 
 
-newtype Chat = Chat (String 262144)
+newtype Chat = Chat (String 26_2144)
   deriving newtype IsString
 
 
-newtype Identifier = Identifier (String 32767)
+newtype Identifier = Identifier (String 32_767)
   deriving newtype IsString
 
 
