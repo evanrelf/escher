@@ -28,10 +28,10 @@ main = Tasty.defaultMain $ Tasty.testGroup "tests"
 test_serialize_types :: Tasty.TestTree
 test_serialize_types = Tasty.testGroup "Serialize types"
   [ HUnit.testCase "roundtrip string" do
-      roundtrip $ String @0 ""
-      roundtrip $ String @0 "\0"
-      roundtrip $ String @0 "hello world"
-      roundtrip $ String @0 "\n\n"
+      roundtrip $ String @Unlimited ""
+      roundtrip $ String @Unlimited "\0"
+      roundtrip $ String @Unlimited "hello world"
+      roundtrip $ String @Unlimited "\n\n"
 
   , HUnit.testCase "roundtrip varint" do
       roundtrip $ VarInt 42

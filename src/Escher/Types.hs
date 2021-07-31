@@ -20,6 +20,7 @@ module Escher.Types
   , Float (..)
   , Double (..)
   , String(.., String)
+  , Unlimited
   , Chat (..)
   , Identifier (..)
   , VarInt (..)
@@ -98,6 +99,9 @@ data String (n :: Nat) = UnsafeString
   { size :: VarInt
   , string :: Text
   } deriving stock (Eq, Show)
+
+
+type Unlimited = 0
 
 
 pattern String :: forall n. KnownNat n => () => Text -> String n
