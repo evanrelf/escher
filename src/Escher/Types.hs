@@ -155,6 +155,7 @@ instance Cereal.Serialize VarInt where
 
 
 newtype VarLong = VarLong { unVarLong :: Int64 }
+  deriving stock (Eq, Show)
   deriving newtype Num
 
 
