@@ -28,8 +28,10 @@ import qualified Data.Serialize as Cereal
 import qualified Network.Socket as Network
 import qualified Network.Socket.ByteString as Network
 
+
 main :: IO ()
 main = server
+
 
 client :: IO ()
 client = runTCPClient "localhost" "25565" $ runEscher do
@@ -46,6 +48,7 @@ client = runTCPClient "localhost" "25565" $ runEscher do
 
   packet <- receive @Packet
   liftIO $ print packet
+
 
 server :: IO ()
 server = do
@@ -70,6 +73,7 @@ server = do
     liftIO $ Network.shutdown socket Network.ShutdownBoth
     liftIO $ putStrLn "Closed socket"
 
+
 runEscher
   :: ReaderT Network.Socket (StateT ByteString (ExceptT String IO)) a
   -> Network.Socket
@@ -79,6 +83,7 @@ runEscher m socket
   . flip evalStateT (mempty :: ByteString)
   . flip runReaderT socket
   $ m
+
 
 receive
   :: forall a m
@@ -94,6 +99,7 @@ receive = do
   (result, rest) <- receive' socket (Just bytes)
   put rest
   liftEither (Bifunctor.first ("Failed to decode packet:\n" <>) result)
+
 
 receive'
   :: forall a m
@@ -116,6 +122,7 @@ receive' socket = liftIO . go (Cereal.runGetPartial Cereal.get)
         Cereal.Done x rest -> pure (Right x, rest)
         Cereal.Partial k' -> go k' Nothing
 
+
 send
   :: forall a m
    . MonadIO m
@@ -126,6 +133,7 @@ send
 send x = do
   socket <- ask
   send' socket x
+
 
 send'
   :: forall a m

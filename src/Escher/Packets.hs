@@ -37,6 +37,7 @@ import qualified Data.Serialize as Cereal
 import qualified Data.Text.Lazy as LText
 import qualified Escher.Types as Escher
 
+
 data PacketWith data_ = UnsafePacket
   { length :: Escher.VarInt
   , id :: Escher.VarInt
@@ -44,7 +45,9 @@ data PacketWith data_ = UnsafePacket
   } deriving stock (Generic, Show)
     deriving anyclass Cereal.Serialize
 
+
 type Packet = PacketWith Escher.ByteArray
+
 
 pattern Packet
   :: Cereal.Serialize data_
@@ -61,6 +64,7 @@ pattern Packet id data_ <- UnsafePacket{id, data_} where
     , id
     , data_
     }
+
 
 instance {-# OVERLAPPING #-} Cereal.Serialize Packet where
   put :: Cereal.Putter Packet
@@ -82,6 +86,7 @@ instance {-# OVERLAPPING #-} Cereal.Serialize Packet where
       pure (Escher.ByteArray bytes)
     pure UnsafePacket{length, id, data_}
 
+
 data HandshakeData = HandshakeData
   { protocolVersion :: Escher.VarInt
   , serverAddress :: Escher.String 255
@@ -90,16 +95,21 @@ data HandshakeData = HandshakeData
   } deriving stock (Generic, Show)
     deriving anyclass Cereal.Serialize
 
+
 type Handshake = PacketWith HandshakeData
 
+
 type StatusRequest = PacketWith ()
+
 
 data StatusResponseData = StatusResponseData
   { json :: Escher.String 0
   } deriving stock (Generic, Show)
     deriving anyclass Cereal.Serialize
 
+
 type StatusResponse = PacketWith StatusResponseData
+
 
 statusResponse :: StatusResponse
 statusResponse =
@@ -124,9 +134,12 @@ statusResponse =
             ]
     }
 
+
 type Ping = PacketWith Escher.Long
 
+
 type Pong = PacketWith Escher.Long
+
 
 pong :: Escher.Long -> Pong
 pong n = Packet 0x01 n

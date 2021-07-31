@@ -11,10 +11,12 @@ import qualified Test.Tasty.Golden as Tasty.Golden
 import qualified Test.Tasty.HUnit as Tasty.HUnit
 import qualified Test.Tasty.Hedgehog as Tasty.Hedgehog
 
+
 main :: IO ()
 main = Tasty.defaultMain $ Tasty.testGroup "tests"
   [ test_foo
   ]
+
 
 test_foo :: Tasty.TestTree
 test_foo = Tasty.testGroup "foo"
