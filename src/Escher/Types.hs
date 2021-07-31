@@ -20,8 +20,7 @@ module Escher.Types
   , Long (..)
   , Float (..)
   , Double (..)
-  , String
-  , pattern String
+  , String(.., String)
   , Chat (..)
   , Identifier (..)
   , VarInt (..)

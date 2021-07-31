@@ -10,9 +10,8 @@
 {-# LANGUAGE PatternSynonyms #-}
 
 module Escher.Packets
-  ( PacketWith (..)
+  ( PacketWith (.., Packet)
   , Packet
-  , pattern Packet
   , HandshakeData (..)
   , Handshake
   , StatusRequest
