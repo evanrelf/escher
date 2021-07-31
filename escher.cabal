@@ -35,8 +35,8 @@ common executable
 library
   import: common
   build-depends:
-      base
     , aeson
+    , base
     , bytestring
     , cereal
     , cereal-text
@@ -48,19 +48,19 @@ library
     , zlib
   hs-source-dirs: src
   exposed-modules:
-      Escher
-    , Escher.Packets
-    , Escher.Types
+    Escher
+    Escher.Packets
+    Escher.Types
 
 test-suite test
   import:
-      common
+    , common
     , executable
   type: exitcode-stdio-1.0
   main-is: Main.hs
   hs-source-dirs: test
   build-depends:
-      escher
+    , escher
     , hedgehog
     , pretty-show
     , tasty
