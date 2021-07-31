@@ -28,25 +28,25 @@ main = Tasty.defaultMain $ Tasty.testGroup "tests"
 test_serialize_types :: Tasty.TestTree
 test_serialize_types = Tasty.testGroup "Serialize types"
   [ HUnit.testCase "roundtrip string" do
-      roundtrip @(String 42) $ String ""
-      roundtrip @(String 42) $ String "\0"
-      roundtrip @(String 42) $ String "hello world"
-      roundtrip @(String 42) $ String "\n\n"
+      roundtrip $ String @0 ""
+      roundtrip $ String @0 "\0"
+      roundtrip $ String @0 "hello world"
+      roundtrip $ String @0 "\n\n"
 
   , HUnit.testCase "roundtrip varint" do
-      roundtrip @VarInt $ VarInt 42
-      roundtrip @VarInt $ VarInt -42
+      roundtrip $ VarInt 42
+      roundtrip $ VarInt -42
 
   , HUnit.testCase "roundtrip varlong" do
-      roundtrip @VarLong $ VarLong 42
-      roundtrip @VarLong $ VarLong -42
+      roundtrip $ VarLong 42
+      roundtrip $ VarLong -42
   ]
 
 
 test_serialize_packets :: Tasty.TestTree
 test_serialize_packets = Tasty.testGroup "Serialize packets"
   [ HUnit.testCase "roundtrip handshake" do
-      roundtrip @Handshake $ Packet 0x00 HandshakeData
+      roundtrip $ Packet 0x00 HandshakeData
         { protocolVersion = 756
         , serverAddress = String "localhost"
         , serverPort = 3000
@@ -54,16 +54,16 @@ test_serialize_packets = Tasty.testGroup "Serialize packets"
         }
 
   , HUnit.testCase "roundtrip status request" do
-      roundtrip @StatusRequest $ Packet 0x00 ()
+      roundtrip $ Packet 0x00 ()
 
   , HUnit.testCase "roundtrip status response" do
-      roundtrip @StatusResponse statusResponse
+      roundtrip statusResponse
 
   , HUnit.testCase "roundtrip ping" do
       roundtrip @Ping $ Packet 0x01 42
 
   , HUnit.testCase "roundtrip pong" do
-      roundtrip @Pong $ pong 42
+      roundtrip $ pong 42
   ]
 
 
