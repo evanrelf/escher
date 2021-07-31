@@ -73,7 +73,7 @@ newtype Short = Short Int16
 
 
 newtype UnsignedShort = UnsignedShort Word16
-  deriving stock Show
+  deriving stock (Eq, Show)
   deriving newtype (Num, Cereal.Serialize)
 
 
@@ -82,8 +82,8 @@ newtype Int = Int Int32
 
 
 newtype Long = Long Int64
-  deriving stock Show
-  deriving newtype Cereal.Serialize
+  deriving stock (Eq, Show)
+  deriving newtype (Num, Cereal.Serialize)
 
 
 newtype Float = Float Prelude.Float
@@ -97,7 +97,7 @@ newtype Double = Double Prelude.Double
 data String (n :: Nat) = UnsafeString
   { size :: VarInt
   , string :: Text
-  } deriving stock Show
+  } deriving stock (Eq, Show)
 
 
 pattern String :: forall n. KnownNat n => () => Text -> String n
@@ -141,7 +141,7 @@ newtype Identifier = Identifier (String 32_767)
 
 
 newtype VarInt = VarInt { unVarInt :: Int32 }
-  deriving stock Show
+  deriving stock (Eq, Show)
   deriving newtype Num
 
 
@@ -193,7 +193,7 @@ newtype Array a = Array [a]
 
 
 newtype Enum a = Enum a
-  deriving stock Show
+  deriving stock (Eq, Show)
   deriving newtype (Num, Cereal.Serialize)
 
 

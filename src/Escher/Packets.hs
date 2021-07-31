@@ -42,7 +42,7 @@ data PacketWith data_ = UnsafePacket
   { length :: Escher.VarInt
   , id :: Escher.VarInt
   , data_ :: data_
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Eq, Show)
     deriving anyclass Cereal.Serialize
 
 
@@ -92,7 +92,7 @@ data HandshakeData = HandshakeData
   , serverAddress :: Escher.String 255
   , serverPort :: Escher.UnsignedShort
   , nextState :: Escher.Enum Escher.VarInt
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
     deriving anyclass Cereal.Serialize
 
 
@@ -104,7 +104,7 @@ type StatusRequest = PacketWith ()
 
 data StatusResponseData = StatusResponseData
   { json :: Escher.String 0
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
     deriving anyclass Cereal.Serialize
 
 
