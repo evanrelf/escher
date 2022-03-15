@@ -8,7 +8,7 @@ author:      Evan Relf <evan@evanrelf.com>
 maintainer:  Evan Relf <evan@evanrelf.com>
 homepage:    https://github.com/evanrelf/escher
 license:     ISC
-copyright:   2021 Evan Relf
+copyright:   2022 Evan Relf
 
 tested-with: GHC == 8.10.4
 
